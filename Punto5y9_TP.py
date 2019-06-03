@@ -56,14 +56,43 @@ def mediamovildr(x,M):
 ###############################################################################
 """ Implementación de Punto 5 """
 ###############################################################################
-# lb.load -> importo la señal generada en el punto 1
-xR,fs = lb.load("parteReal.wav",sr=None)
-T = len(xR)/fs # Período
+def pdsexp(F0, R, Ar, phi_r, fs, t):
+    x = []
+    xt = []
+    n = np.arange(0,t,1/fs); 
+    for r in range(0,R): 
+        x.append(Ar[r]*np.exp(1j*2*np.pi*r*F0*n + phi_r[r]))
+    xt = [sum(i) for i in zip(*x)]        
+    return n,np.real(xt),np.imag(xt);
+###############################################################################
+fs = 44100 
+t = 2 
+F0 = 440 
+R = 5
+Ar = [1, 1/2, 1/3, 1/4, 1/5] 
+phi_r = [0, 0, 0, 0, 0] 
+###############################################################################   
+n,xR,xI = pdsexp (F0, R, Ar, phi_r, fs, t)
+###############################################################################
 n = np.arange(0,len(xR),1)
-M = 30 # con un tamaño de ventana de 30 se reduce muchisimo los armónicos 4 y 5
-
+# con un tamaño de ventana de 30 se reduce muchisimo los armónicos 4 y 5
+M = 30 
+###############################################################################
+import timeit
+start_time = timeit.default_timer()
 xfd = mediamovild(xR,M) # media movil
+tiempo_xfd = timeit.default_timer() - start_time
+
+start_time = timeit.default_timer()
 xfr = mediamovildr(xR,M) # media movil recursiva
+tiempo_xfr = timeit.default_timer() - start_time
+###############################################################################
+""" Resultados de comparación de los tiempos de ejecución """
+###############################################################################
+print ("La media movil tarda: " + str(tiempo_xfd) + " segundos")
+print ("La media movil recursiva tarda: " + str(tiempo_xfr) + " segundos")
+# Leer: la media móvil recursiva tarda menos que la media móvil hecha por 
+#       iteraciones.    
 ###############################################################################
 """ Ploteo de las señales """ 
 ###############################################################################
@@ -76,6 +105,7 @@ plt.plot(n[100:400],xfd[100:400])
 plt.title("Media Movil")
 plt.ylabel("Amplitud")
 plt.xlabel("Tiempo [s]")
+plt.grid(True)
 
 plt.subplot(2,2,3)
 plt.plot(n[100:400],xR[100:400])
@@ -83,6 +113,7 @@ plt.plot(n[100:400],xfr[100:400])
 plt.title("Media Movil Recursivo")
 plt.ylabel("Amplitud")
 plt.xlabel("Tiempo [s]")
+plt.grid(True)
 
 # fft de la señal original y la filtrada con media movil
 from numpy.fft import fft, fftfreq
@@ -101,14 +132,17 @@ plt.plot(freq[mask],fft_theo[mask])
 plt.title("FFT señal sin filtrar")
 plt.ylabel("Amplitud")
 plt.xlabel("Frecuencia [Hz]")
+plt.grid(True)
 
 plt.subplot(2,2,4)
 plt.plot(freq[mask],fft_theo2[0:44099])
 plt.title("FFT señal filtrada")
 plt.ylabel("Amplitud")
 plt.xlabel("Frecuencia [Hz]")
+plt.grid(True)
+
 plt.show()
 ###############################################################################
 """ Generar wavs """
 ###############################################################################
-GenerarWavLibrosa(44100,xfd,"senalFiltrada.wav")
+GenerarWavLibrosa(fs,np.array(xfd),"senalFiltrada.wav")
