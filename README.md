@@ -1,7 +1,5 @@
 # DSP_TP1
 
-### Trabajo Práctico N°1 - Alumno: Nahuel Armando
----
 #### ***Algortimos realizados en Python 3.7 + IDE Spyder 3.3.5***
 
 Dependencias: 
